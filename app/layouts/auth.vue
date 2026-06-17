@@ -1,15 +1,7 @@
 <template>
-  <div class="auth-layout">
+  <div
+    class="min-h-screen flex items-center justify-center px-4 py-8"
+  >
     <slot />
   </div>
 </template>
-
-<style scoped>
-.auth-layout {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-}
-</style>

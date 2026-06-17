@@ -1,4 +1,5 @@
 export default defineNuxtRouteMiddleware(async () => {
+  
   const authStore = useAuthStore();
 
   if (!authStore.initialized) {

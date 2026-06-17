@@ -1,17 +1,26 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
-   vite: {
+  compatibilityDate: "2025-07-15",
+  vite: {
     optimizeDeps: {
       include: [
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
-        'firebase/app',
-        'firebase/auth',
-        'firebase/firestore',
-      ]
-    }
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "firebase/app",
+        "firebase/auth",
+        "firebase/firestore",
+      ],
+    },
   },
-  modules: ['@pinia/nuxt'],
-  devtools: { enabled: true }
-})
+   routeRules: {
+    '/login': {appLayout: 'auth' },
+   },
+  modules: ["@pinia/nuxt", "@nuxt/ui"],
+  css: ["~/assets/css/main.css"],
+  colorMode: {
+    preference: "light",
+    fallback: "light",
+    classSuffix: "",
+  },
+  devtools: { enabled: true },
+});

@@ -1,19 +1,14 @@
-<script setup>
+<script setup lang="ts">
 definePageMeta({
+  layout: 'default',
   middleware: ['auth'],
 });
-
-const authStore = useAuthStore();
 </script>
 
 <template>
   <div>
-    <h1>Dashboard</h1>
-
-    <p>
-      {{ authStore.user?.email }}
-    </p>
-
-    <button @click="authStore.logout()">Sair</button>
+    <h1 class="text-2xl font-bold mb-4">
+      Dashboard
+    </h1>
   </div>
 </template>
