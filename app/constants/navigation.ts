@@ -2,17 +2,17 @@ import type { NavigationMenuItem } from '~/types/navigation';
 
 export const navigationItems: NavigationMenuItem[] = [
   {
-    label: 'Dashboard',
+    label: 'DASHBOARD',
     icon: 'i-lucide-layout-dashboard',
     to: '/',
   },
   {
-    label: 'Materiais',
+    label: 'MATERIAIS',
     icon: 'i-lucide-package',
     to: '/items',
   },
   {
-    label: 'Compras',
+    label: 'COMPRAS',
     icon: 'i-lucide-shopping-cart',
     to: '/shop',
   },
