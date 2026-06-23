@@ -9,7 +9,7 @@ export const navigationItems: NavigationMenuItem[] = [
   {
     label: 'MATERIAIS',
     icon: 'i-lucide-package',
-    to: '/items',
+    to: '/items/',
   },
   {
     label: 'COMPRAS',
