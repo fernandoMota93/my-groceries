@@ -14,6 +14,6 @@ export const navigationItems: NavigationMenuItem[] = [
   {
     label: 'COMPRAS',
     icon: 'i-lucide-shopping-cart',
-    to: '/shop',
+    to: '/shopping/',
   },
 ];
