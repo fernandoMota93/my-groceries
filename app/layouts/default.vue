@@ -39,7 +39,7 @@ function toggleTheme() {
           <UButton :icon="colorMode.value === 'dark'
             ? 'i-lucide-sun'
             : 'i-lucide-moon'
-            " variant="ghost" @click="toggleTheme" />
+            " variant="ghost" @click="toggleTheme();" />
         </div>
       </header>
 
@@ -50,7 +50,7 @@ function toggleTheme() {
           class="border-default border-r overflow-hidden transition-all duration-300">
           <div class="p-4 flex flex-col gap-2">
             <UButton v-for="item in navigationItems" :key="item.to" as="NuxtLink" :to="item.to" variant="ghost"
-              class="justify-start" :icon="item.icon">
+              class="justify-start" :icon="item.icon" @click="sidebarOpen = false">
               {{ item.label }}
             </UButton>
 

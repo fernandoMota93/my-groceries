@@ -361,7 +361,7 @@ definePageMeta({
                     </template>
 
                     <template #unit_price-cell="{ row }">
-                        <UInput v-model.lazy="row.original.unit_price" v-money3="currencyMask"
+                        <UInput v-model.lazy="row.original.unit_price" v-money3="currencyMask" class="w-full min-w-[100px] sm:min-w-[120px] md:min-w-[130px]"
                             @blur="onUnitPriceBlur(row.original)" />
                     </template>
 
