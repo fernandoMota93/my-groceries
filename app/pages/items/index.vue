@@ -254,7 +254,7 @@ definePageMeta({
             </div>
 
             <!-- Lista com drag and drop nativo -->
-            <div class="space-y-1">
+            <div class="space-y-1" style="overflow: auto;">
                 <div v-for="(item, index) in filteredItems" :key="item.id" class="
                         draggable-row
                         grid 
@@ -279,34 +279,32 @@ definePageMeta({
                     <div class="col-span-1 text-center text-gray-400 hover:text-gray-600">
                         <span class="text-xl">⠿</span>
                     </div>
-
-               
-
                     <!-- Nome -->
-                    <div class="col-span-4 font-medium truncate">
-                        {{ item.name }}
+                    <div class="col-span-4 font-small truncate">
+                        <small>{{ item.name }}</small>
                     </div>
 
                     <!-- Categoria -->
                     <div class="col-span-2">
                         <UBadge color="neutral" variant="soft">
-                            {{ item.category }}
+                            <small>{{ item.category }}</small>
                         </UBadge>
                     </div>
 
                     <!-- Quantidade -->
-                    <div class="col-span-1 text-center">
-                        {{ item.amount }}
+                    <div class="col-span-2 text-center">
+                        <small>{{ item.amount }}</small>
                     </div>
 
                     <!-- Ações -->
-                    <div class="col-span-4 flex justify-end gap-2">
-                        <UButton size="xs" color="primary" @click="editItem(item)">
-                            Editar
-                        </UButton>
-                        <UButton size="xs" color="error" variant="outline" @click="confirmDelete(item)">
-                            Excluir
-                        </UButton>
+                    <div class="col-span-3 flex justify-end gap-2">
+                        <div class="col-span-3 flex justify-end gap-2">
+                            <UButton size="xs" color="primary" variant="soft" @click="editItem(item)"
+                                icon="i-lucide-pencil" />
+
+                            <UButton size="xs" color="error" variant="soft" @click="confirmDelete(item)"
+                                icon="i-lucide-trash-2" />
+                        </div>
                     </div>
                 </div>
 
@@ -339,7 +337,7 @@ definePageMeta({
 .draggable-row.dragging {
     opacity: 0.4;
     transform: scale(0.98);
-    
+
 }
 
 .draggable-row.drag-over {
