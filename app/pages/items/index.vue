@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue';
 import { h } from 'vue';
 import { UButton } from '#components';
 import { getItems } from '~/services/items';
@@ -7,6 +8,9 @@ import type { Item } from '~/types/item';
 import type { TableColumn } from '@nuxt/ui';
 import ItemFormModal from './components/ItemFormModal.vue';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal.vue';
+import { doc, writeBatch } from 'firebase/firestore';
+import { db } from '~/services/firebase';
+import { useDraggable } from '@vueuse/core';
 
 const loading = ref(false);
 const items = ref<Item[]>([]);
@@ -42,12 +46,96 @@ const filteredItems = computed(() => {
 
             return matchesSearch && matchesCategory;
         })
-        .sort((a, b) =>
-            a.name.localeCompare(b.name, 'pt-BR')
-        );
+        .sort((a, b) => a.order - b.order);
 });
 
+// Estado para drag and drop
+const draggedIndex = ref<number | null>(null);
+const dragOverIndex = ref<number | null>(null);
+
+// Funções de drag and drop
+function onDragStart(event: DragEvent, index: number) {
+    draggedIndex.value = index;
+    event.dataTransfer!.effectAllowed = 'move';
+    event.dataTransfer!.setData('text/plain', String(index));
+
+    // Adiciona classe ao elemento arrastado
+    const target = event.target as HTMLElement;
+    target.closest('.draggable-row')?.classList.add('dragging');
+}
+
+function onDragEnd(event: DragEvent) {
+    draggedIndex.value = null;
+    dragOverIndex.value = null;
+
+    // Remove classes
+    document.querySelectorAll('.draggable-row').forEach(el => {
+        el.classList.remove('dragging', 'drag-over');
+    });
+}
+
+function onDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'move';
+
+    if (draggedIndex.value !== null && draggedIndex.value !== index) {
+        dragOverIndex.value = index;
+    }
+}
+
+function onDragLeave(event: DragEvent) {
+    // Remove classe drag-over
+    const target = event.target as HTMLElement;
+    target.closest('.draggable-row')?.classList.remove('drag-over');
+}
+
+async function onDrop(event: DragEvent, targetIndex: number) {
+    event.preventDefault();
+
+    const sourceIndex = parseInt(event.dataTransfer?.getData('text/plain') || '-1');
+
+    if (sourceIndex === -1 || sourceIndex === targetIndex) {
+        onDragEnd(event);
+        return;
+    }
+
+    // Reordena os itens
+    const currentItems = [...filteredItems.value];
+    const [movedItem] = currentItems.splice(sourceIndex, 1);
+    currentItems.splice(targetIndex, 0, movedItem);
+
+    // Atualiza a ordem
+    const updatedItems = currentItems.map((item, index) => ({
+        ...item,
+        order: index + 1
+    }));
+
+    // Atualiza o estado local
+    const allItemIds = new Set(updatedItems.map(item => item.id));
+    const otherItems = items.value.filter(item => !allItemIds.has(item.id));
+    items.value = [...updatedItems, ...otherItems];
+
+    // Salva no Firebase
+    try {
+        const batch = writeBatch(db);
+        updatedItems.forEach((item) => {
+            const docRef = doc(db, 'items', item.id);
+            batch.update(docRef, { order: item.order });
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error('Erro ao reordenar itens:', error);
+        await loadItems(); // Recarrega em caso de erro
+    }
+
+    onDragEnd(event);
+}
+
 const columns: TableColumn<Item>[] = [
+    {
+        accessorKey: 'order',
+        header: '#',
+    },
     {
         accessorKey: 'name',
         header: 'Nome',
@@ -83,6 +171,7 @@ const columns: TableColumn<Item>[] = [
         },
     },
 ];
+
 async function reloadItems() {
     await loadItems();
 }
@@ -115,9 +204,7 @@ async function loadItems() {
 async function handleSeed() {
     try {
         const total = await seedItems();
-
         await loadItems();
-
         alert(`${total} itens importados.`);
     } catch (error) {
         console.error(error);
@@ -154,36 +241,112 @@ definePageMeta({
             <template #header>
                 <div class="flex items-center justify-between">
                     <span>Itens cadastrados</span>
-
-                    <UBadge>
-                        {{ items.length }}
-                    </UBadge>
+                    <UBadge>{{ items.length }}</UBadge>
                 </div>
             </template>
+
             <div class="flex gap-3 mb-4">
-
                 <UInput v-model="search" placeholder="Buscar item..." class="flex-1" />
-
-                <USelect v-model="categoryFilter" :items="[
-                    'Todas',
-                    ...categories
-                ]" placeholder="Categoria" />
-
-                <UButton color="neutral" variant="outline" @click="
-                    search = '';
-                categoryFilter = '';
-                ">
+                <USelect v-model="categoryFilter" :items="['Todas', ...categories]" placeholder="Categoria" />
+                <UButton color="neutral" variant="outline" @click="search = ''; categoryFilter = '';">
                     Limpar
                 </UButton>
-
             </div>
 
-            <UTable :data="filteredItems" :columns="columns" :loading="loading" />
+            <!-- Lista com drag and drop nativo -->
+            <div class="space-y-1">
+                <div v-for="(item, index) in filteredItems" :key="item.id" class="
+                        draggable-row
+                        grid 
+                        grid-cols-12 
+                        gap-2 
+                        items-center 
+                        py-2 
+                        px-3 
+                        border 
+                        border-gray-200 
+                        rounded-lg
+                        hover:bg-gray-50 
+                        transition-all
+                        cursor-move
+                        select-none
+                    " :class="{
+                        'bg-gray-100 border-blue-300': dragOverIndex === index,
+                        'opacity-50': draggedIndex === index,
+                    }" draggable="true" @dragstart="onDragStart($event, index)" @dragend="onDragEnd"
+                    @dragover="onDragOver($event, index)" @dragleave="onDragLeave" @drop="onDrop($event, index)">
+                    <!-- Handle de arrasto -->
+                    <div class="col-span-1 text-center text-gray-400 hover:text-gray-600">
+                        <span class="text-xl">⠿</span>
+                    </div>
+
+               
+
+                    <!-- Nome -->
+                    <div class="col-span-4 font-medium truncate">
+                        {{ item.name }}
+                    </div>
+
+                    <!-- Categoria -->
+                    <div class="col-span-2">
+                        <UBadge color="neutral" variant="soft">
+                            {{ item.category }}
+                        </UBadge>
+                    </div>
+
+                    <!-- Quantidade -->
+                    <div class="col-span-1 text-center">
+                        {{ item.amount }}
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="col-span-4 flex justify-end gap-2">
+                        <UButton size="xs" color="primary" @click="editItem(item)">
+                            Editar
+                        </UButton>
+                        <UButton size="xs" color="error" variant="outline" @click="confirmDelete(item)">
+                            Excluir
+                        </UButton>
+                    </div>
+                </div>
+
+                <!-- Mensagem quando não há itens -->
+                <div v-if="filteredItems.length === 0" class="text-center py-8 text-gray-500">
+                    Nenhum item encontrado
+                </div>
+            </div>
         </UCard>
-        <ItemFormModal v-model:open="showCreateModal" @saved="reloadItems" />
 
+        <ItemFormModal v-model:open="showCreateModal" :itemLength="items.length" @saved="reloadItems" />
         <ItemFormModal v-model:open="showEditModal" :item="itemSelected" @saved="reloadItems" />
-
         <ConfirmDeleteModal v-model:open="showDeleteModal" :item="itemSelected" @deleted="loadItems" />
     </div>
 </template>
+
+<style scoped>
+.draggable-row {
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.draggable-row:hover {
+    transform: translateY(-1px);
+    background-color: #4e4e4e;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.draggable-row.dragging {
+    opacity: 0.4;
+    transform: scale(0.98);
+    
+}
+
+.draggable-row.drag-over {
+    border-color: #3b82f6;
+    background-color: #4e4e4e !important;
+
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+</style>

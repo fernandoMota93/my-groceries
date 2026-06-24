@@ -1,6 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  ssr: false, // Desativa SSR
+  nitro: {
+    preset: "static", // Gera arquivos estáticos
+    static: true,
+  },
   vite: {
     optimizeDeps: {
       include: [
@@ -11,6 +16,7 @@ export default defineNuxtConfig({
         "firebase/firestore",
         "v-money3",
         "vue-chrts",
+        "vuedraggable",
         "zod",
       ],
     },
@@ -26,5 +32,5 @@ export default defineNuxtConfig({
     fallback: "light",
     classSuffix: "",
   },
-  devtools: { enabled: false },
+  devtools: { enabled: true },
 });

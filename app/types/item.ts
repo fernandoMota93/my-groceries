@@ -6,6 +6,7 @@ export interface Item {
   category: string
   amount: number
   active: boolean
+  order: number
   created_at: Timestamp
   updated_at: Timestamp
 }

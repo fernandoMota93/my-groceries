@@ -28,6 +28,7 @@ export async function getItems(): Promise<Item[]> {
     return {
       id: document.id,
       name: data.name,
+      order: data.order,
       category: data.category,
       amount: data.amount,
       active: data.active,

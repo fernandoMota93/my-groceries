@@ -48,6 +48,7 @@ export async function seedShoppingItems(shoppingId: string) {
       buy: item.amount,
       unit_price: 0,
       total_price: 0,
+      order: item.order,
       checked: false,
     }),
   );

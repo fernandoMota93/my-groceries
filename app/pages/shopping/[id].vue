@@ -56,36 +56,57 @@ const groupedItems = computed(() => {
             if (!acc[item.category]) {
                 acc[item.category] = [];
             }
-
             acc[item.category].push(item);
-
             return acc;
         },
         {} as Record<string, ShoppingItem[]>,
     );
 
+    // Ordena os itens dentro de cada categoria
     Object.keys(groups).forEach((category) => {
         groups[category].sort((a, b) => {
             const aNeedsBuy = a.buy > 0;
             const bNeedsBuy = b.buy > 0;
 
-            // Comprar primeiro, OK depois
             if (aNeedsBuy !== bNeedsBuy) {
                 return aNeedsBuy ? -1 : 1;
             }
 
-            // Dentro do mesmo grupo, ordem alfabética
-            return a.name.localeCompare(
-                b.name,
-                'pt-BR',
-                {
-                    sensitivity: 'base',
-                },
-            );
+            return a.order - b.order;
         });
     });
 
-    return groups;
+    // Define a ordem das categorias
+    const categoryOrder = [
+        'Alimentos',
+        'Pets',
+        'Condimentos',
+        'Temperos',
+        'Carnes e Frios',
+        'Limpeza',
+        'Higiene',
+    ];
+
+    // Ordena as chaves do objeto baseado no categoryOrder
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const indexA = categoryOrder.indexOf(a);
+        const indexB = categoryOrder.indexOf(b);
+
+        // Se uma categoria não estiver na lista, coloca no final
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+
+        return indexA - indexB;
+    });
+
+    // Retorna um novo objeto com as categorias ordenadas
+    const sortedGroups = {} as Record<string, ShoppingItem[]>;
+    sortedKeys.forEach(key => {
+        sortedGroups[key] = groups[key];
+    });
+
+    return sortedGroups;
 });
 
 const grandTotal = computed(() => {
@@ -137,7 +158,6 @@ async function saveItem(
                 item.total_price,
         },
     );
-    console.log('APÓS SALVAR', item.unit_price);
 
 }
 

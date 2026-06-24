@@ -17,7 +17,9 @@ const open = defineModel<boolean>('open', {
 
 const props = defineProps<{
     item?: Item | null;
+    itemLength?: number;
 }>();
+
 
 const emit = defineEmits<{
     saved: [];
@@ -67,10 +69,14 @@ async function submit() {
                 amount: form.amount,
             });
         } else {
+            const nextOrder = (props.itemLength ?? 0) + 1;
+            
             await createItem({
                 name: form.name,
                 category: form.category,
                 amount: form.amount,
+                active: true,
+                order: nextOrder,
             });
         }
 
