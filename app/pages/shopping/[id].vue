@@ -51,29 +51,41 @@ const filteredItems = computed(() => {
 });
 
 const groupedItems = computed(() => {
-    const sorted = [...filteredItems.value].sort(
-        (a, b) =>
-            a.name.localeCompare(
-                b.name,
-                'pt-BR',
-            ),
-    );
-
-     return sorted.reduce(
-        (groups, item) => {
-            if (!groups[item.category]) {
-                groups[item.category] = [];
+    const groups = filteredItems.value.reduce(
+        (acc, item) => {
+            if (!acc[item.category]) {
+                acc[item.category] = [];
             }
 
-            groups[item.category].push(item);
+            acc[item.category].push(item);
 
-            return groups;
+            return acc;
         },
-        {} as Record<
-            string,
-            ShoppingItem[]
-        >,
+        {} as Record<string, ShoppingItem[]>,
     );
+
+    Object.keys(groups).forEach((category) => {
+        groups[category].sort((a, b) => {
+            const aNeedsBuy = a.buy > 0;
+            const bNeedsBuy = b.buy > 0;
+
+            // Comprar primeiro, OK depois
+            if (aNeedsBuy !== bNeedsBuy) {
+                return aNeedsBuy ? -1 : 1;
+            }
+
+            // Dentro do mesmo grupo, ordem alfabética
+            return a.name.localeCompare(
+                b.name,
+                'pt-BR',
+                {
+                    sensitivity: 'base',
+                },
+            );
+        });
+    });
+
+    return groups;
 });
 
 const grandTotal = computed(() => {
@@ -125,6 +137,8 @@ async function saveItem(
                 item.total_price,
         },
     );
+    console.log('APÓS SALVAR', item.unit_price);
+
 }
 
 async function updateItem(
@@ -161,10 +175,13 @@ function onStockBlur(item: ShoppingItem) {
 
 function onUnitPriceBlur(item: ShoppingItem) {
     item.unit_price = parseMasked(item.unit_price);
+    item.unit_price = item.unit_price * 100
+
     updateItem(item);
 }
 
 const columns: TableColumn<ShoppingItem>[] = [
+
     {
         accessorKey: 'name',
         header: 'Item',
@@ -259,7 +276,7 @@ definePageMeta({
                 </UBadge>
 
                 <UBadge color="primary" size="lg">
-                    {{ currency.format(grandTotal) }}
+                    {{ currency.format(grandTotal / 100) }}
                 </UBadge>
             </div>
         </div>
@@ -288,11 +305,7 @@ definePageMeta({
             </div>
 
             <UCard>
-                <UTable
-                    :data="categoryItems"
-                    :columns="columns"
-                    :loading="loading"
-                >
+                <UTable :data="categoryItems" :columns="columns" :loading="loading">
                     <template #name-cell="{ row }">
                         <div class="
                                 flex
@@ -320,11 +333,7 @@ definePageMeta({
                     </template>
 
                     <template #stock-cell="{ row }">
-                        <UInput
-                            v-model.lazy="row.original.stock"
-                           
-                            @blur="onStockBlur(row.original)"
-                        />
+                        <UInput v-model.lazy="row.original.stock" @blur="onStockBlur(row.original)" />
                     </template>
 
                     <template #buy-cell="{ row }">
@@ -332,17 +341,14 @@ definePageMeta({
                     </template>
 
                     <template #unit_price-cell="{ row }">
-                        <UInput
-                            v-model.lazy="row.original.unit_price"
-                            v-money3="currencyMask"
-                            @blur="onUnitPriceBlur(row.original)"
-                        />
+                        <UInput v-model.lazy="row.original.unit_price" v-money3="currencyMask"
+                            @blur="onUnitPriceBlur(row.original)" />
                     </template>
 
                     <template #total_price-cell="{ row }">
-                        {{  
+                        {{
                             currency.format(
-                                row.original.total_price || 0,
+                                (row.original.total_price / 100) || 0,
                             )
                         }}
                     </template>

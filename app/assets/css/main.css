@@ -22,3 +22,19 @@ html, body {
   --color-green-900: #0a5331;
   --color-green-950: #052e16;
 }
+
+.dark {
+  --ui-bg: #120f18;
+  --ui-bg-muted: #1b1625;
+  --ui-bg-elevated: #241d33;
+  --ui-bg-accented: #32284a;
+
+  --ui-border: #342a4b;
+  --ui-border-muted: #443661;
+  --ui-border-accented: #5a4682;
+
+  --ui-text: #f5f3ff;
+  --ui-text-muted: #d8d4fe;
+  --ui-text-toned: #c4b5fd;
+  --ui-primary: #a855f7;
+}

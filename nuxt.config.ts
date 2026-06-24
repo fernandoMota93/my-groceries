@@ -9,18 +9,22 @@ export default defineNuxtConfig({
         "firebase/app",
         "firebase/auth",
         "firebase/firestore",
+        "v-money3",
+        "vue-chrts",
+        "zod",
       ],
     },
   },
-   routeRules: {
-    '/login': {appLayout: 'auth' },
-   },
+  routeRules: {
+    "/login": { appLayout: "auth" },
+  },
   modules: ["@pinia/nuxt", "@nuxt/ui"],
   css: ["~/assets/css/main.css"],
+
   colorMode: {
     preference: "light",
     fallback: "light",
     classSuffix: "",
   },
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 });
