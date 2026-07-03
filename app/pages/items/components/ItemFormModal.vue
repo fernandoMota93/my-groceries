@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Item } from '~/types/item';
 import { createItem, updateItem } from '~/services/items';
+import { addIndividualShoppingItem } from '~/services/shopping-items';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -18,6 +19,8 @@ const open = defineModel<boolean>('open', {
 const props = defineProps<{
     item?: Item | null;
     itemLength?: number;
+
+    shoppingId?: string;
 }>();
 
 
@@ -61,6 +64,7 @@ watch(
 );
 
 async function submit() {
+    console.log('sadsas')
     try {
         if (props.item) {
             await updateItem(props.item.id, {
@@ -70,14 +74,21 @@ async function submit() {
             });
         } else {
             const nextOrder = (props.itemLength ?? 0) + 1;
-            
-            await createItem({
+
+            const createdItem = await createItem({
                 name: form.name,
                 category: form.category,
                 amount: form.amount,
                 active: true,
                 order: nextOrder,
             });
+
+            if (props.shoppingId) {
+                await addIndividualShoppingItem(
+                    props.shoppingId,
+                    createdItem,
+                );
+            }
         }
 
         emit('saved');

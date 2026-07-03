@@ -35,6 +35,24 @@ export async function createShoppingItem(shoppingId: string, payload: any) {
   return addDoc(shoppingItemsCollection(shoppingId), payload);
 }
 
+export async function addIndividualShoppingItem(
+  shoppingId: string,
+  item: Item,
+) {
+  return createShoppingItem(shoppingId, {
+    item_id: item.id,
+    name: item.name,
+    category: item.category,
+    maintain: item.amount,
+    stock: 0,
+    buy: item.amount,
+    unit_price: 0,
+    total_price: 0,
+    order: item.order,
+    checked: false,
+  });
+}
+
 export async function seedShoppingItems(shoppingId: string) {
   const items = await getItems();
 

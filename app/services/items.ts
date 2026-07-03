@@ -7,18 +7,15 @@ import {
   where,
   doc,
   serverTimestamp,
-} from 'firebase/firestore';
+} from "firebase/firestore";
 
-import { db } from './firebase';
-import type { Item } from '~/types/item';
+import { db } from "./firebase";
+import type { Item } from "~/types/item";
 
-const collectionRef = collection(db, 'items');
+const collectionRef = collection(db, "items");
 
 export async function getItems(): Promise<Item[]> {
-  const q = query(
-    collectionRef,
-    where('active', '==', true),
-  );
+  const q = query(collectionRef, where("active", "==", true));
 
   const snapshot = await getDocs(q);
 
@@ -39,23 +36,28 @@ export async function getItems(): Promise<Item[]> {
 }
 
 export async function createItem(payload) {
-  return addDoc(collectionRef, {
+  const ref = await addDoc(collectionRef, {
     ...payload,
     active: true,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   });
+
+  return {
+    id: ref.id,
+    ...payload,
+  };
 }
 
 export async function updateItem(id, payload) {
-  return updateDoc(doc(db, 'items', id), {
+  return updateDoc(doc(db, "items", id), {
     ...payload,
     updated_at: serverTimestamp(),
   });
 }
 
 export async function deleteItem(id) {
-  return updateDoc(doc(db, 'items', id), {
+  return updateDoc(doc(db, "items", id), {
     active: false,
     updated_at: serverTimestamp(),
   });
