@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Shopping } from '~/types/shopping';
 import { deleteShopping } from '~/services/shopping';
+import { deleteShoppingWeekly } from '~/services/shopping-weekly';
 
 const open = defineModel<boolean>('open', {
     default: false,
@@ -8,6 +9,7 @@ const open = defineModel<boolean>('open', {
 
 const props = defineProps<{
     shopping?: Shopping | null;
+    isWeekly?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -21,19 +23,37 @@ async function confirmDelete() {
         return;
     }
 
-    try {
-        loading.value = true;
+    if (props.isWeekly) {
+        try {
+            loading.value = true;
 
-        await deleteShopping(props.shopping.id);
+            await deleteShoppingWeekly(props.shopping.id);
 
-        emit('deleted');
+            emit('deleted');
 
-        open.value = false;
-    } catch (error) {
-        console.error(error);
-    } finally {
-        loading.value = false;
+            open.value = false;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        try {
+            loading.value = true;
+
+            await deleteShopping(props.shopping.id);
+
+            emit('deleted');
+
+            open.value = false;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            loading.value = false;
+        }
     }
+
+
 }
 </script>
 
@@ -52,10 +72,7 @@ async function confirmDelete() {
                         Deseja excluir este mercado?
                     </p>
 
-                    <div
-                        v-if="shopping"
-                        class="p-3 rounded border"
-                    >
+                    <div v-if="shopping" class="p-3 rounded border">
                         <strong>
                             {{ shopping.title }}
                         </strong>
@@ -72,19 +89,11 @@ async function confirmDelete() {
 
                 <template #footer>
                     <div class="flex justify-end gap-2">
-                        <UButton
-                            color="neutral"
-                            variant="outline"
-                            @click="open = false"
-                        >
+                        <UButton color="neutral" variant="outline" @click="open = false">
                             Cancelar
                         </UButton>
 
-                        <UButton
-                            color="error"
-                            :loading="loading"
-                            @click="confirmDelete"
-                        >
+                        <UButton color="error" :loading="loading" @click="confirmDelete">
                             Excluir
                         </UButton>
                     </div>

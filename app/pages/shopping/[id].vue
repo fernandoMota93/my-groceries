@@ -1,5 +1,6 @@
     <script setup lang="ts">
     import { getShoppingItems, updateShoppingItem } from '~/services/shopping-items';
+    import { getShoppingItemsWeekly, updateShoppingItemWeekly } from '~/services/shopping-items';
     import type { ShoppingItem } from '~/types/shopping-item';
     import type { TableColumn } from '@nuxt/ui';
     import { useMoneyMaskConfig } from '~/composables/useMoneyMask';
@@ -8,6 +9,7 @@
     const route = useRoute();
 
     const shoppingId = route.params.id as string;
+    const isWeekly = computed(() => route.query.weekly === 'true');
 
     const loading = ref(false);
     const search = ref('');
@@ -33,13 +35,26 @@
     async function loadItems() {
         loading.value = true;
 
-        try {
-            items.value = await getShoppingItems(
-                shoppingId,
-            );
-        } finally {
-            loading.value = false;
+        if (isWeekly) {
+            try {
+                items.value = await getShoppingItemsWeekly(
+                    shoppingId,
+                );
+            } finally {
+                loading.value = false;
+            }
+
+        } else {
+            try {
+                items.value = await getShoppingItems(
+                    shoppingId,
+                );
+            } finally {
+                loading.value = false;
+            }
         }
+
+
     }
 
     const filteredItems = computed(() => {
@@ -152,18 +167,35 @@
     async function saveItem(
         item: ShoppingItem,
     ) {
-        await updateShoppingItem(
-            shoppingId,
-            item.id,
-            {
-                stock: item.stock,
-                buy: item.buy,
-                unit_price:
-                    item.unit_price,
-                total_price:
-                    item.total_price,
-            },
-        );
+
+        if (isWeekly) {
+            await updateShoppingItemWeekly(
+                shoppingId,
+                item.id,
+                {
+                    stock: item.stock,
+                    buy: item.buy,
+                    unit_price:
+                        item.unit_price,
+                    total_price:
+                        item.total_price,
+                },
+            );
+        } else {
+            await updateShoppingItem(
+                shoppingId,
+                item.id,
+                {
+                    stock: item.stock,
+                    buy: item.buy,
+                    unit_price:
+                        item.unit_price,
+                    total_price:
+                        item.total_price,
+                },
+            );
+        }
+
 
     }
 
@@ -204,6 +236,17 @@
         item.unit_price = item.unit_price * 100
 
         updateItem(item);
+    }
+
+    function focusNextStock(index: number) {
+        const next = document.querySelector(
+            `[data-stock-index="${index + 1}"] input`
+        ) as HTMLInputElement | null;
+
+        if (next) {
+            next.focus();
+            next.select();
+        }
     }
 
     const columns: TableColumn<ShoppingItem>[] = [
@@ -274,6 +317,8 @@
         layout: 'default',
         middleware: ['auth'],
     });
+
+
 </script>
 
     <template>
@@ -321,7 +366,7 @@
                 <UInput v-model="search" placeholder="Buscar item..." icon="i-lucide-search" />
             </UCard>
 
-            <ItemFormModal v-model:open="showCreateModal" :itemLength="items.length" :shoppingId="shoppingId"
+            <ItemFormModal v-model:open="showCreateModal" :itemLength="items.length" :shoppingId="shoppingId" :isWeekly="isWeekly"
                 @saved="loadItems" />
 
             <div v-for="(categoryItems, category) in groupedItems" :key="category" class="space-y-2">
@@ -372,7 +417,8 @@
                         </template>
 
                         <template #stock-cell="{ row }">
-                            <UInput  size="xs" v-model.lazy="row.original.stock" @blur="onStockBlur(row.original)" />
+                            <UInput size="xs" v-model.lazy="row.original.stock" @blur="onStockBlur(row.original)"
+                                :data-stock-index="row.index" @keydown.enter.prevent="focusNextStock(row.index)" />
                         </template>
 
                         <template #buy-cell="{ row }">
@@ -380,7 +426,7 @@
                         </template>
 
                         <template #unit_price-cell="{ row }">
-                            <UInput  size="xs" v-model.lazy="row.original.unit_price" v-money3="currencyMask"
+                            <UInput size="xs" v-model.lazy="row.original.unit_price" v-money3="currencyMask"
                                 class="w-full min-w-[100px] sm:min-w-[120px] md:min-w-[130px]"
                                 @blur="onUnitPriceBlur(row.original)" />
                         </template>

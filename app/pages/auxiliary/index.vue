@@ -11,7 +11,7 @@ definePageMeta({
     middleware: ['auth'],
 });
 
-const weeks = ref(5);
+const weeks = ref(4);
 const items = ref<MeatFractioning[]>([]);
 
 async function loadItems() {

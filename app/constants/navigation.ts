@@ -7,9 +7,14 @@ export const navigationItems: NavigationMenuItem[] = [
     to: "/",
   },
   {
-    label: "MATERIAIS",
+    label: "MATERIAIS DO MÊS",
     icon: "i-lucide-package",
     to: "/items/",
+  },
+    {
+    label: "MATERIAIS DA SEMANA",
+    icon: "i-lucide-package",
+    to: "/items-weekly/",
   },
   {
     label: "COMPRAS",

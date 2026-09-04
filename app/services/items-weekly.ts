@@ -12,9 +12,7 @@ import {
 import { db } from "./firebase";
 import type { Item } from "~/types/item";
 
-const collectionRef = collection(db, "items");
-const collectionRefWeekly = collection(db, "itemsWeekly");
-
+const collectionRef = collection(db, "itemsWeekly");
 
 export async function getItems(): Promise<Item[]> {
   const q = query(collectionRef, where("active", "==", true));
@@ -37,29 +35,7 @@ export async function getItems(): Promise<Item[]> {
   });
 }
 
-export async function getWeeklyItems(): Promise<Item[]> {
-  const q = query(collectionRefWeekly, where("active", "==", true));
-
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((document) => {
-    const data = document.data();
-
-    return {
-      id: document.id,
-      name: data.name,
-      order: data.order,
-      category: data.category,
-      amount: data.amount,
-      active: data.active,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-    };
-  });
-}
-
-
-export async function createItem(payload) {
+export async function createItemWeekly(payload) {
   const ref = await addDoc(collectionRef, {
     ...payload,
     active: true,
@@ -73,15 +49,15 @@ export async function createItem(payload) {
   };
 }
 
-export async function updateItem(id, payload) {
-  return updateDoc(doc(db, "items", id), {
+export async function updateItemWeekly(id, payload) {
+  return updateDoc(doc(db, "itemsWeekly", id), {
     ...payload,
     updated_at: serverTimestamp(),
   });
 }
 
-export async function deleteItem(id) {
-  return updateDoc(doc(db, "items", id), {
+export async function deleteItemWeekly(id) {
+  return updateDoc(doc(db, "itemsWeekly", id), {
     active: false,
     updated_at: serverTimestamp(),
   });

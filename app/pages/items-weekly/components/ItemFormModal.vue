@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { Item } from '~/types/item';
-import { createItem, updateItem } from '~/services/items';
+
 import { createItemWeekly, updateItemWeekly } from '~/services/items-weekly';
-import { addIndividualShoppingItemWeekly, addIndividualShoppingItem } from '~/services/shopping-items';
+
+import { addIndividualShoppingItemWeekly } from '~/services/shopping-items';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -20,7 +21,7 @@ const open = defineModel<boolean>('open', {
 const props = defineProps<{
     item?: Item | null;
     itemLength?: number;
-    isWeekly?: boolean;
+
     shoppingId?: string;
 }>();
 
@@ -66,60 +67,30 @@ watch(
 
 async function submit() {
     try {
-
-        if (props.isWeekly) {
-            if (props.item) {
-                await updateItemWeekly(props.item.id, {
-                    name: form.name,
-                    category: form.category,
-                    amount: form.amount,
-                });
-            } else {
-                const nextOrder = (props.itemLength ?? 0) + 1;
-
-                const createdItem = await createItemWeekly({
-                    name: form.name,
-                    category: form.category,
-                    amount: form.amount,
-                    active: true,
-                    order: nextOrder,
-                });
-
-                if (props.shoppingId) {
-                    await addIndividualShoppingItemWeekly(
-                        props.shoppingId,
-                        createdItem,
-                    );
-                }
-            }
-
+        if (props.item) {
+            await updateItemWeekly(props.item.id, {
+                name: form.name,
+                category: form.category,
+                amount: form.amount,
+            });
         } else {
-            if (props.item) {
-                await updateItem(props.item.id, {
-                    name: form.name,
-                    category: form.category,
-                    amount: form.amount,
-                });
-            } else {
-                const nextOrder = (props.itemLength ?? 0) + 1;
+            const nextOrder = (props.itemLength ?? 0) + 1;
 
-                const createdItem = await createItem({
-                    name: form.name,
-                    category: form.category,
-                    amount: form.amount,
-                    active: true,
-                    order: nextOrder,
-                });
+            const createdItem = await createItemWeekly({
+                name: form.name,
+                category: form.category,
+                amount: form.amount,
+                active: true,
+                order: nextOrder,
+            });
 
-                if (props.shoppingId) {
-                    await addIndividualShoppingItem(
-                        props.shoppingId,
-                        createdItem,
-                    );
-                }
+            if (props.shoppingId) {
+                await addIndividualShoppingItemWeekly(
+                    props.shoppingId,
+                    createdItem,
+                );
             }
         }
-
 
         emit('saved');
         open.value = false;
