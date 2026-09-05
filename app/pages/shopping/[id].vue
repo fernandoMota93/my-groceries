@@ -35,8 +35,6 @@
     async function loadItems() {
         loading.value = true;
 
-        console.log('dasdasdas',isWeekly.value)
-
         if (isWeekly.value == true) {
             try {
                 items.value = await getShoppingItemsWeekly(
@@ -170,7 +168,7 @@
         item: ShoppingItem,
     ) {
 
-        if (isWeekly) {
+        if (isWeekly.value == true) {
             await updateShoppingItemWeekly(
                 shoppingId,
                 item.id,
